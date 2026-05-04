@@ -3,9 +3,6 @@
 #endif
 #define _OUTPUTINFO_included
 
-
-native int DeleteOutput(int Entity, const char[] sOutput, int Index);
-native int DeleteAllOutputs(int Entity, const char[] sOutput);
 /*
  * Retrieves the number of elements of the given output.
  *
