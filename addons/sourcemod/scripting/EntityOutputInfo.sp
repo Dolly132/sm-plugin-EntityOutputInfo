@@ -397,10 +397,10 @@ int Native_GetOutputNames(Handle plugin, int params)
 
 public void OnPluginStart()
 {
-	GameData gd = new GameData("outputinfo.games");
+	GameData gd = new GameData("EntityOutputInfo.games");
 	if (gd == null)
 	{
-		LogError("[OutputInfo] Could not find gamedata file, some features may be negelcted!");
+		LogError("Could not find gamedata file, some features may be negelcted!");
 	}
 	else
 	{
@@ -411,7 +411,7 @@ public void OnPluginStart()
 		g_hDeleteElement = EndPrepSDKCall();
 		if (g_hDeleteElement == null)
 		{
-			LogError("[OutputInfo] Could not get a good SDKCall handle for CEventAction__operator_delete, DeleteOutput/DeleteAllOutputs will not work.");
+			LogError("Could not get a good SDKCall handle for CEventAction__operator_delete, DeleteOutput/DeleteAllOutputs will not work.");
 		}
 
 		StartPrepSDKCall(SDKCall_Entity);
@@ -421,7 +421,7 @@ public void OnPluginStart()
 
 		if (g_hGetDataDescMap == null)
 		{
-			LogError("[OutputInfo] Could not get a good SDKCall handle for CBaseEntity_GetDataDescMap, GetOutputNames will not work.");
+			LogError("Could not get a good SDKCall handle for CBaseEntity_GetDataDescMap, GetOutputNames will not work.");
 		}
 
 		delete gd;
@@ -705,7 +705,7 @@ bool DeleteOutput(int entity, const char[] output, int index)
 {
 	if (g_hDeleteElement == null)
 	{
-		ThrowError("[OutputInfo] Invalid SDKCall Handle, cannot delete event actions");
+		ThrowError("Invalid SDKCall Handle, cannot delete event actions");
 	}
 
 	Address outputAddr = GetOutputAddress(entity, output);
@@ -748,7 +748,7 @@ int DeleteAllOutputs(int entity, const char[] output)
 {
 	if (g_hDeleteElement == null)
 	{
-		ThrowError("[OutputInfo] Invalid SDKCall Handle, cannot delete event actions");
+		ThrowError("Invalid SDKCall Handle, cannot delete event actions");
 		return 0;
 	}
 
@@ -804,7 +804,7 @@ int GetOutputFormatted(int entity, const char[] output, int index, char[] format
 int GetOutputNames(int entity, int index, char[] output, int maxlen)
 {
 	if (g_hGetDataDescMap == null)
-		ThrowError("[OutputInfo] Invalid SDKCall Handle, cannot get output names");
+		ThrowError("Invalid SDKCall Handle, cannot get output names");
 
 	Address datamap_t = SDKCall(g_hGetDataDescMap, entity);
 	if (!datamap_t)
@@ -845,7 +845,7 @@ int StringtToCharArray(Address addr, char[] buffer, int maxlen, bool allowNull =
 	{
 		if (!allowNull)
 		{
-			ThrowError("[OutputInfo] string_t address is null");
+			ThrowError("string_t address is null");
 		}
 		else
 		{
@@ -855,7 +855,7 @@ int StringtToCharArray(Address addr, char[] buffer, int maxlen, bool allowNull =
 	}
 
 	if (maxlen <= 0)
-		ThrowError("[OutputInfo] Buffer size is negative or zero");
+		ThrowError("Buffer size is negative or zero");
 
 	int max = maxlen-1;
 	int i = 0;
