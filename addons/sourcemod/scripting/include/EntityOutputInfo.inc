@@ -1,7 +1,7 @@
-#if defined _outputinfo_included
+#if defined _EntityOutputInfo_included
     #endinput
 #endif
-#define _outputinfo_included
+#define _EntityOutputInfo_included
 
 /**
  * Returns the number of actions registered for the given output.
@@ -195,7 +195,7 @@ native int DeleteAllOutputs(int entity, const char[] output);
 native int GetOutputNames(int entity, int index, char[] output, int maxlen);
 
 #if !defined REQUIRE_PLUGIN
-public void __pl_OUTPUTINFO_SetNTVOptional()
+public void __pl_EntityOutputInfo_SetNTVOptional()
 {
     MarkNativeAsOptional("GetOutputCount");
     MarkNativeAsOptional("GetOutputTarget");
@@ -217,8 +217,8 @@ public void __pl_OUTPUTINFO_SetNTVOptional()
 
 public SharedPlugin __pl_OUTPUTINFO =
 {
-    name = "outputinfo",
-    file = "outputinfo.smx",
+    name = "EntityOutputInfo",
+    file = "EntityOutputInfo.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else
