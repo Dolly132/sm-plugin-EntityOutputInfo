@@ -767,7 +767,7 @@ bool DeleteOutput(int entity, const char[] output, int index)
 		StoreToAddress(outputAddr + m_ActionList_offset, LoadFromAddress(curEvent + m_pNext_offset, NumberType_Int32), NumberType_Int32);
 
 	SDKCall(g_hDeleteElement, curEvent, curEvent);
-	return false;
+	return true;
 }
 
 int DeleteAllOutputs(int entity, const char[] output)
