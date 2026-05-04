@@ -4,9 +4,21 @@
 #include <sourcemod>
 #include <sdktools>
 
+// datamap_t
+#define dataDesc_offset			view_as<Address>(0x00)
+#define dataNumFields_offset	view_as<Address>(0x04)
+#define baseMap_offset			view_as<Address>(0x0C)
+#define FTYPEDESC_OUTPUT		0x0010
+
+// typedescription_t
+#define fieldType_offset		view_as<Address>(0x00)
+#define fieldName_offset		view_as<Address>(0x04)
+#define flags_offset			view_as<Address>(0x12)
+#define typedescription_t_size	52
+
 // varianthax_t m_Value
 #define Union_Val_offset      	view_as<Address>(0x00)
-#define fieldType_offset      	view_as<Address>(0x10)
+#define fieldType_var_offset    view_as<Address>(0x10)
 
 
 // CBaseEntityOutput
@@ -68,6 +80,7 @@ enum
 };
 
 Handle g_hDeleteElement;
+Handle g_hGetDataDescMap;
 
 public Plugin myinfo =
 {
@@ -93,6 +106,9 @@ public APLRes AskPluginLoad2(Handle myPlugin, bool late, char[] error, int err_m
 	CreateNative("FindOutput", Native_FindOutput);
 	CreateNative("DeleteOutput", Native_DeleteOutput);
 	CreateNative("DeleteAllOutputs", Native_DeleteAllOutputs);
+
+	CreateNative("GetOutputFormatted", Native_GetOutputFormatted);
+	CreateNative("GetOutputNames", Native_GetOutputNames);
 }
 
 int Native_GetOutputCount(Handle plugin, int params)
@@ -247,6 +263,8 @@ int Native_GetOutputValueVector(Handle plugin, int params)
 	GetNativeString(2, output, sizeof(output));
 
 	float value[3];
+	GetNativeArray(3, value, sizeof(value));
+
 	int res = view_as<int>(GetOutputValueFloat(entity, output, true, value));
 	if (res)
 	{
@@ -302,10 +320,51 @@ int Native_DeleteAllOutputs(Handle plugin, int params)
 	return DeleteAllOutputs(entity, output);
 }
 
+int Native_GetOutputFormatted(Handle plugin, int params)
+{
+	int entity = GetNativeCell(1);
+
+	char output[256];
+	GetNativeString(2, output, sizeof(output));
+
+	int index = GetNativeCell(3);
+
+	int maxlen = GetNativeCell(5);
+
+	char[] formatted = new char[maxlen];
+	GetNativeString(4, formatted, maxlen);
+
+	int len = GetOutputFormatted(entity, output, index, formatted, maxlen);
+	if (len)
+	{
+		SetNativeString(4, formatted, maxlen);
+	}
+
+	return len;
+}
+
+int Native_GetOutputNames(Handle plugin, int params)
+{
+	int entity = GetNativeCell(1);
+
+	int index = GetNativeCell(2);
+
+	int maxlen = GetNativeCell(4);
+
+	char[] output = new char[maxlen];
+	GetNativeString(3, output, maxlen);
+
+	int len = GetOutputNames(entity, index, output, maxlen);
+	if (len)
+	{
+		SetNativeString(4, output, maxlen);
+	}
+
+	return len;
+}
+
 public void OnPluginStart()
 {
-	RegConsoleCmd("sm_outputtest", Command_Test);
-
 	GameData gd = new GameData("outputinfo.games");
 	if (gd == null)
 	{
@@ -320,57 +379,21 @@ public void OnPluginStart()
 		g_hDeleteElement = EndPrepSDKCall();
 		if (g_hDeleteElement == null)
 		{
-			LogError("[OutputInfo] Could not get a good SDKCall handle for CEventAction__operator_delete, DeleteElement will not work.");
+			LogError("[OutputInfo] Could not get a good SDKCall handle for CEventAction__operator_delete, DeleteOutput/DeleteAllOutputs will not work.");
+		}
+
+		StartPrepSDKCall(SDKCall_Entity);
+		PrepSDKCall_SetFromConf(gd, SDKConf_Virtual, "CBaseEntity_GetDataDescMap");
+		PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+		g_hGetDataDescMap = EndPrepSDKCall();
+
+		if (g_hGetDataDescMap == null)
+		{
+			LogError("[OutputInfo] Could not get a good SDKCall handle for CBaseEntity_GetDataDescMap, GetOutputNames will not work.");
 		}
 
 		delete gd;
 	}
-}
-
-Action Command_Test(int client, int args)
-{
-	if (args <= 0)
-		return Plugin_Handled;
-
-	char classname[32];
-	GetCmdArg(1, classname, sizeof(classname));
-	int entity = FindEntityByClassname(-1, classname);
-
-	if (entity == -1)
-	{
-		PrintToChatAll("No entity");
-		return Plugin_Handled;
-	}
-
-	int count = GetOutputCount(entity, "m_OnHitMax");
-
-	PrintToChatAll("*****m_OnHitMax******");
-	PrintToChatAll("Count: %d", count);
-
-	char target[32];
-	char targetInput[32];
-	char parameter[128];
-
-	for (int i = 0; i < count; i++)
-	{
-		GetOutputTarget(entity, "m_OnHitMax", i, target, sizeof(target));
-		GetOutputTargetInput(entity, "m_OnHitMax", i, targetInput, sizeof(targetInput));
-		GetOutputParameter(entity, "m_OnHitMax", i, parameter, sizeof(parameter));
-	
-		float delay = GetOutputDelay(entity, "m_OnHitMax", i);
-	
-		PrintToChatAll("Target: %s\nTargetInput: %s", target, targetInput);
-		PrintToChatAll("Parameter: %s\nDelay: %.2f", parameter, delay);
-		PrintToChatAll("Refires: %d", GetOutputRefires(entity, "m_OnHitMax", i));
-	}
-
-	if (args > 1)
-	{
-		PrintToChatAll("Deleting all outputs: m_OnHitMax");
-		DeleteAllOutputs(entity, "m_OnHitMax");
-	}
-
-	return Plugin_Handled;
 }
 
 Address GetOutputAddress(int entity, const char[] output)
@@ -397,16 +420,9 @@ int GetOutputCount(int entity, const char[] output)
 	if (!outputAddr)
 		return 0;
 
-	//PrintToChatAll("Found output address: %X", outputAddr);
-
 	Address actionList = GetOutputActionList(outputAddr);
 	if (!actionList)
-	{
-		//PrintToChatAll("Invalid action list...");
 		return 0;
-	}
-
-	//PrintToChatAll("Found actionList address: %X", actionList);
 
 	int count = 0;
 	while (actionList)
@@ -548,7 +564,7 @@ int GetOutputValue(int entity, const char[] output)
 	if (!outputAddr)
 		return 0;
 
-	int fieldType = LoadFromAddress(outputAddr + fieldType_offset, NumberType_Int32);
+	int fieldType = LoadFromAddress(outputAddr + fieldType_var_offset, NumberType_Int32);
 	switch (fieldType)
 	{
 		case 
@@ -575,7 +591,7 @@ float GetOutputValueFloat(int entity, const char[] output, bool isVector = false
 	if (!outputAddr)
 		return 0.0;
 
-	int fieldType = LoadFromAddress(outputAddr + fieldType_offset, NumberType_Int32);
+	int fieldType = LoadFromAddress(outputAddr + fieldType_var_offset, NumberType_Int32);
 	switch (fieldType)
 	{
 		case 
@@ -607,7 +623,7 @@ int GetOutputValueString(int entity, const char[] output, char[] value, int maxl
 	if (!outputAddr)
 		return 0;
 
-	int fieldType = LoadFromAddress(outputAddr + fieldType_offset, NumberType_Int32);
+	int fieldType = LoadFromAddress(outputAddr + fieldType_var_offset, NumberType_Int32);
 	switch (fieldType)
 	{
 		case 
@@ -783,6 +799,99 @@ int DeleteAllOutputs(int entity, const char[] output)
 	}
 
 	return count;
+}
+
+int GetOutputFormatted(int entity, const char[] output, int index, char[] formatted, int maxlen)
+{
+	Address outputAddr = GetOutputAddress(entity, output);
+	if (!outputAddr)
+		return 0;
+
+	Address actionList = GetOutputActionList(outputAddr);
+	if (!actionList)
+		return 0;
+
+	int count = 0;
+	while (actionList)
+	{
+		if (count == index)
+		{
+			Address m_iTarget = LoadFromAddress(actionList + m_iTarget_offset, NumberType_Int32);
+	
+			char thisTarget[64];
+			StringtToCharArray(m_iTarget, thisTarget, sizeof(thisTarget), true);
+
+			Address m_iTargetInput = LoadFromAddress(actionList + m_iTargetInput_offset, NumberType_Int32);
+
+			char thisTargetInput[64];
+			StringtToCharArray(m_iTargetInput, thisTargetInput, sizeof(thisTargetInput), true);
+
+			Address m_iParameter = LoadFromAddress(actionList + m_iParameter_offset, NumberType_Int32);
+
+			char thisParameter[256];
+			StringtToCharArray(m_iParameter, thisParameter, sizeof(thisParameter), true);
+
+			Address m_flDelay = actionList + m_flDelay_offset;
+
+			float thisDelay = LoadFromAddress(m_flDelay, NumberType_Int32);
+
+			Address m_nTimesToFire = actionList + m_nTimesToFire_offset;
+
+			int thisTimesToFire = LoadFromAddress(m_nTimesToFire, NumberType_Int32);
+
+			return FormatEx(
+				formatted, maxlen, "%s,%s,%s,%f,%d",
+				thisTarget,
+				thisTargetInput,
+				thisParameter,
+				thisDelay,
+				thisTimesToFire
+			);
+		}
+
+		actionList = LoadFromAddress(actionList + m_pNext_offset, NumberType_Int32);
+		count++;
+	}
+
+	return 0;
+}
+
+int GetOutputNames(int entity, int index, char[] output, int maxlen)
+{
+	if (g_hGetDataDescMap == null)
+		ThrowError("[OutputInfo] Invalid SDKCall Handle, cannot get output names");
+
+	Address datamap_t = SDKCall(g_hGetDataDescMap, entity);
+	if (!datamap_t)
+		return 0;
+
+	for (int count = 0; datamap_t; datamap_t = LoadFromAddress(datamap_t + baseMap_offset, NumberType_Int32))
+	{
+		Address dataDesc = LoadFromAddress(datamap_t + dataDesc_offset, NumberType_Int32);
+		int dataNumFields = LoadFromAddress(datamap_t + dataNumFields_offset, NumberType_Int32);
+		for (int i = 0; i < dataNumFields; i++)
+		{
+			Address typedescription_t = dataDesc + view_as<Address>(i * typedescription_t_size);
+
+			int fieldType = LoadFromAddress(typedescription_t + fieldType_offset, NumberType_Int32);
+			if (fieldType != FIELD_CUSTOM)
+				continue;
+
+			int flags = LoadFromAddress(typedescription_t + flags_offset, NumberType_Int16);
+			if (!(flags & FTYPEDESC_OUTPUT))
+				continue;
+
+			if (index == count)
+			{
+				Address fieldNameAddr = LoadFromAddress(typedescription_t + fieldName_offset, NumberType_Int32);
+				return StringtToCharArray(fieldNameAddr, output, maxlen, true);
+			}
+
+			count++;
+		}
+	}
+
+	return 0;
 }
 
 int StringtToCharArray(Address addr, char[] buffer, int maxlen, bool allowNull = false)
