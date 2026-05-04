@@ -83,7 +83,7 @@ Handle g_hGetDataDescMap;
 
 public Plugin myinfo =
 {
-	name		= "OutputInfo",
+	name		= "EntityOutputInfo",
 	author		= "Botox, Addie, Dolly, .Rushaway",
 	description	= "Read entity outputs",
 	version		= "1.1.0",
