@@ -762,9 +762,9 @@ bool DeleteOutput(int entity, const char[] output, int index)
 		return false;
 
 	if (prevEvent != Address_Null)
-		StoreToAddress(prevEvent + m_pNext_offset, curEvent + m_pNext_offset, NumberType_Int32);
+		StoreToAddress(prevEvent + m_pNext_offset, LoadFromAddress(curEvent + m_pNext_offset, NumberType_Int32), NumberType_Int32);
 	else
-		StoreToAddress(outputAddr + m_ActionList_offset, curEvent + m_pNext_offset, NumberType_Int32);
+		StoreToAddress(outputAddr + m_ActionList_offset, LoadFromAddress(curEvent + m_pNext_offset, NumberType_Int32), NumberType_Int32);
 
 	SDKCall(g_hDeleteElement, curEvent, curEvent);
 	return false;
