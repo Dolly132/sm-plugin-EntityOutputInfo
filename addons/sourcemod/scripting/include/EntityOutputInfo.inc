@@ -150,16 +150,7 @@ native bool GetOutputValueVector(int entity, const char[] output, float vec[3]);
  *
  * @return              Index of the matching action, or -1 if not found.
  */
-native int FindOutput(
-    int entity,
-    const char[] output,
-    int startIndex,
-    const char[] target      = NULL_STRING,
-    const char[] targetInput = NULL_STRING,
-    const char[] parameter   = NULL_STRING,
-    float delay              = -1.0,
-    int timesToFire          = 0
-);
+native int FindOutput(int entity, const char[] output, int startIndex, const char[] target = NULL_STRING, const char[] targetInput = NULL_STRING, const char[] parameter = NULL_STRING, float delay = -1.0, int timesToFire = 0);
 
 /**
  * Deletes the output action at the given index.

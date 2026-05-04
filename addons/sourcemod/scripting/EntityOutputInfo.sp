@@ -83,9 +83,9 @@ Handle g_hGetDataDescMap;
 
 public Plugin myinfo =
 {
-	name		= "EntityOutputInfo",
+	name		= "Entity Output Info",
 	author		= "Botox, Addie, Dolly, .Rushaway",
-	description	= "Read entity outputs",
+	description	= "Advanced entity output manipulation API",
 	version		= "1.1.0",
 	url			= "https://github.com/srcdslab"
 };
@@ -108,6 +108,8 @@ public APLRes AskPluginLoad2(Handle myPlugin, bool late, char[] error, int err_m
 
 	CreateNative("GetOutputFormatted", Native_GetOutputFormatted);
 	CreateNative("GetOutputNames", Native_GetOutputNames);
+
+	RegPluginLibrary("EntityOutputInfo");
 	return APLRes_Success;
 }
 
@@ -400,7 +402,7 @@ public void OnPluginStart()
 	GameData gd = new GameData("EntityOutputInfo.games");
 	if (gd == null)
 	{
-		LogError("Could not find gamedata file, some features may be negelcted!");
+		LogError("Could not find gamedata file, some features may be neglected!");
 	}
 	else
 	{
