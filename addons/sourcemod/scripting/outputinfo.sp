@@ -5,78 +5,77 @@
 #include <sdktools>
 
 // datamap_t
-#define dataDesc_offset			view_as<Address>(0x00)
-#define dataNumFields_offset	view_as<Address>(0x04)
-#define baseMap_offset			view_as<Address>(0x0C)
-#define FTYPEDESC_OUTPUT		0x0010
+#define dataDesc_offset         view_as<Address>(0x00)
+#define dataNumFields_offset    view_as<Address>(0x04)
+#define baseMap_offset          view_as<Address>(0x0C)
+#define FTYPEDESC_OUTPUT        0x0010
 
 // typedescription_t
-#define fieldType_offset		view_as<Address>(0x00)
-#define fieldName_offset		view_as<Address>(0x04)
-#define flags_offset			view_as<Address>(0x12)
-#define typedescription_t_size	52
+#define fieldType_offset        view_as<Address>(0x00)
+#define fieldName_offset        view_as<Address>(0x04)
+#define flags_offset            view_as<Address>(0x12)
+#define typedescription_t_size  52
 
 // varianthax_t m_Value
-#define Union_Val_offset		view_as<Address>(0x00)
-#define fieldType_var_offset	view_as<Address>(0x10)
-
+#define Union_Val_offset        view_as<Address>(0x00)
+#define fieldType_var_offset    view_as<Address>(0x10)
 
 // CBaseEntityOutput
-#define m_Value_offset			view_as<Address>(0x00)
-#define m_ActionList_offset		view_as<Address>(0x14)
-
+#define m_Value_offset          view_as<Address>(0x00)
+#define m_ActionList_offset     view_as<Address>(0x14)
 
 // CEventAction
-#define m_iTarget_offset		view_as<Address>(0x00)
-#define m_iTargetInput_offset	view_as<Address>(0x04)
-#define m_iParameter_offset		view_as<Address>(0x08)
-#define m_flDelay_offset		view_as<Address>(0x0C)
-#define m_nTimesToFire_offset	view_as<Address>(0x10)
-#define m_iIDStamp_offset		view_as<Address>(0x14)
-#define m_pNext_offset			view_as<Address>(0x18)
+#define m_iTarget_offset        view_as<Address>(0x00)
+#define m_iTargetInput_offset   view_as<Address>(0x04)
+#define m_iParameter_offset     view_as<Address>(0x08)
+#define m_flDelay_offset        view_as<Address>(0x0C)
+#define m_nTimesToFire_offset   view_as<Address>(0x10)
+#define m_iIDStamp_offset       view_as<Address>(0x14)
+#define m_pNext_offset          view_as<Address>(0x18)
 
-
+/**
+ * Field types used in Source Engine datamaps (fieldtype_t).
+ * Mirrors the engine enum defined in datamap.h.
+ */
 enum
 {
-	FIELD_VOID = 0,			// No type or value
-	FIELD_FLOAT,			// Any floating point value
-	FIELD_STRING,			// A string ID (return from ALLOC_STRING)
-	FIELD_VECTOR,			// Any vector, QAngle, or AngularImpulse
-	FIELD_QUATERNION,		// A quaternion
-	FIELD_INTEGER,			// Any integer or enum
-	FIELD_BOOLEAN,			// boolean, implemented as an int, I may use this as a hint for compression
-	FIELD_SHORT,			// 2 byte integer
-	FIELD_CHARACTER,		// a byte
-	FIELD_COLOR32,			// 8-bit per channel r,g,b,a (32bit color)
-	FIELD_EMBEDDED,			// an embedded object with a datadesc, recursively traverse and embedded class/structure based on an additional typedescription
-	FIELD_CUSTOM,			// special type that contains function pointers to it's read/write/parse functions
+    FIELD_VOID = 0,                 // No type or value
+    FIELD_FLOAT,                    // Any floating point value
+    FIELD_STRING,                   // A string ID (returned from ALLOC_STRING)
+    FIELD_VECTOR,                   // Any vector, QAngle, or AngularImpulse
+    FIELD_QUATERNION,               // A quaternion
+    FIELD_INTEGER,                  // Any integer or enum
+    FIELD_BOOLEAN,                  // Boolean, implemented as an int
+    FIELD_SHORT,                    // 2-byte integer
+    FIELD_CHARACTER,                // A single byte
+    FIELD_COLOR32,                  // 8-bit per channel RGBA (32-bit color)
+    FIELD_EMBEDDED,                 // Embedded object with a datadesc; recursively traversed
+    FIELD_CUSTOM,                   // Special type with function pointers for read/write/parse
 
-	FIELD_CLASSPTR,			// CBaseEntity *
-	FIELD_EHANDLE,			// Entity handle
-	FIELD_EDICT,			// edict_t *
+    FIELD_CLASSPTR,                 // CBaseEntity*
+    FIELD_EHANDLE,                  // Entity handle
+    FIELD_EDICT,                    // edict_t*
 
-	FIELD_POSITION_VECTOR,	// A world coordinate (these are fixed up across level transitions automagically)
-	FIELD_TIME,				// a floating point time (these are fixed up automatically too!)
-	FIELD_TICK,				// an integer tick count( fixed up similarly to time)
-	FIELD_MODELNAME,		// Engine string that is a model name (needs precache)
-	FIELD_SOUNDNAME,		// Engine string that is a sound name (needs precache)
+    FIELD_POSITION_VECTOR,          // World coordinate (fixed up across level transitions)
+    FIELD_TIME,                     // Floating point time (fixed up automatically)
+    FIELD_TICK,                     // Integer tick count (fixed up similarly to time)
+    FIELD_MODELNAME,                // Engine string representing a model name (needs precache)
+    FIELD_SOUNDNAME,                // Engine string representing a sound name (needs precache)
 
-	FIELD_INPUT,			// a list of inputed data fields (all derived from CMultiInputVar)
-	FIELD_FUNCTION,			// A class function pointer (Think, Use, etc)
+    FIELD_INPUT,                    // List of input data fields (derived from CMultiInputVar)
+    FIELD_FUNCTION,                 // Class function pointer (Think, Use, etc.)
 
-	FIELD_VMATRIX,			// a vmatrix (output coords are NOT worldspace)
+    FIELD_VMATRIX,                  // VMatrix (output coords are NOT worldspace)
+    FIELD_VMATRIX_WORLDSPACE,       // VMatrix mapping local space to world space (translation fixed up on level transitions)
+    FIELD_MATRIX3X4_WORLDSPACE,     // matrix3x4_t mapping local space to world space (translation fixed up on level transitions)
 
-	// NOTE: Use float arrays for local transformations that don't need to be fixed up.
-	FIELD_VMATRIX_WORLDSPACE,// A VMatrix that maps some local space to world space (translation is fixed up on level transitions)
-	FIELD_MATRIX3X4_WORLDSPACE,	// matrix3x4_t that maps some local space to world space (translation is fixed up on level transitions)
+    FIELD_INTERVAL,                 // Start and range floating point interval (e.g. 3.2->3.6 == 3.2 and 0.4)
+    FIELD_MODELINDEX,               // A model index
+    FIELD_MATERIALINDEX,            // A material index (using the material precache string table)
 
-	FIELD_INTERVAL,			// a start and range floating point interval ( e.g., 3.2->3.6 == 3.2 and 0.4 )
-	FIELD_MODELINDEX,		// a model index
-	FIELD_MATERIALINDEX,	// a material index (using the material precache string table)
+    FIELD_VECTOR2D,                 // 2D vector (2 floats)
 
-	FIELD_VECTOR2D,			// 2 floats
-
-	FIELD_TYPECOUNT,		// MUST BE LAST
+    FIELD_TYPECOUNT,                // MUST BE LAST
 };
 
 Handle g_hDeleteElement;
