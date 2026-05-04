@@ -215,7 +215,7 @@ public void __pl_EntityOutputInfo_SetNTVOptional()
 }
 #endif
 
-public SharedPlugin __pl_OUTPUTINFO =
+public SharedPlugin __pl_EntityOutputInfo =
 {
     name = "EntityOutputInfo",
     file = "EntityOutputInfo.smx",
