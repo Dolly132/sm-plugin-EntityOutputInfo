@@ -9,12 +9,14 @@ Entity outputs are the connections wired between entities in a map (e.g. `OnTrig
 |-------|-------|
 | Name | Entity Output Info |
 | Authors | Botox, Addie, Dolly, .Rushaway |
-| Version | 1.2.1 |
 | SourceMod version | 1.12+ |
 
 ---
 
 ## Installation
+
+> [!IMPORTANT]
+> Only supported on 32 bits for now (Windows/Linux)
 
 1. Download the latest compiled `.smx` from the [Releases](../../releases) page.
 2. Place `EntityOutputInfo.smx` in `addons/sourcemod/plugins/`.
@@ -337,20 +339,6 @@ native int GetOutputNames(int entity, int index, char[] output, int maxlen);
 | `maxlen` | `int` | Maximum length of the buffer |
 
 **Returns:** Number of bytes written to the buffer.
-
----
-
-## Building from source
-
-This project uses [SourceKnight](https://github.com/Scags/sourceknight) as its build tool.
-
-```bash
-sourceknight build
-```
-
-The compiled plugin will be placed in `addons/sourcemod/plugins/`.
-
----
 
 ## License
 
