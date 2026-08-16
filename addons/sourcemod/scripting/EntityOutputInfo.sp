@@ -86,7 +86,7 @@ public Plugin myinfo =
 	name		= "Entity Output Info",
 	author		= "Botox, Addie, Dolly, .Rushaway",
 	description	= "Advanced entity output manipulation API",
-	version		= "1.2.2",
+	version		= "1.2.3",
 	url			= "https://github.com/srcdslab"
 };
 
@@ -625,7 +625,8 @@ int GetOutputValueString(int entity, const char[] output, char[] value, int maxl
 	{
 		case FIELD_CHARACTER, FIELD_STRING, FIELD_MODELNAME, FIELD_SOUNDNAME:
 		{
-			return StringtToCharArray(LoadFromAddress(outputAddr + Union_Val_offset, NumberType_Int32), value, maxlen, true);
+			Address unionVal = LoadFromAddress(outputAddr + Union_Val_offset, NumberType_Int32);
+			return StringtToCharArray(unionVal, value, maxlen, true);
 		}
 	}
 
@@ -797,14 +798,17 @@ int GetOutputFormatted(int entity, const char[] output, int index, char[] format
 	if (!action)
 		return 0;
 
+	Address m_iTarget = LoadFromAddress(action + m_iTarget_offset, NumberType_Int32);
 	char thisTarget[64];
-	StringtToCharArray(LoadFromAddress(action + m_iTarget_offset, NumberType_Int32), thisTarget, sizeof(thisTarget), true);
+	StringtToCharArray(m_iTarget, thisTarget, sizeof(thisTarget), true);
 
+	Address m_iTargetInput = LoadFromAddress(action + m_iTargetInput_offset, NumberType_Int32);
 	char thisTargetInput[64];
-	StringtToCharArray(LoadFromAddress(action + m_iTargetInput_offset, NumberType_Int32), thisTargetInput, sizeof(thisTargetInput), true);
+	StringtToCharArray(m_iTargetInput, thisTargetInput, sizeof(thisTargetInput), true);
 
+	Address m_iParameter = LoadFromAddress(action + m_iParameter_offset, NumberType_Int32);
 	char thisParameter[256];
-	StringtToCharArray(LoadFromAddress(action + m_iParameter_offset, NumberType_Int32), thisParameter, sizeof(thisParameter), true);
+	StringtToCharArray(m_iParameter, thisParameter, sizeof(thisParameter), true);
 
 	float thisDelay = view_as<float>(LoadFromAddress(action + m_flDelay_offset, NumberType_Int32));
 	int thisTimesToFire = LoadFromAddress(action + m_nTimesToFire_offset, NumberType_Int32);
